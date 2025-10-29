@@ -94,45 +94,71 @@ window.Echo.private(`chat.${currentUserId}`)
         `;
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    })
+    .listenForWhisper('typing', (e) => {
+        console.log(`${e.name} is typing...`);
+        showTypingIndicator(e.name);
     });
+textInput.addEventListener('input', () => {
+    window.Echo.private(`chat.${ReceiverId}`)
+        .whisper('typing', {
+            userId: currentUserId,
+            name: '{{ auth()->user()->name }}',
+        });
+});
+
+
+
+let typingTimeout;
+
+function showTypingIndicator(name) {
+    const indicator = document.getElementById('typing-indicator');
+    indicator.textContent = `${name} is typing...`;
+    indicator.style.display = 'block';
+
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        indicator.style.display = 'none';
+    }, 2000);
+}
 
     // Receiver ID is the current logged-in user
 
 
 
-    window.Echo.private(`typing.${ReceiverId}`)
-    .listen('UserTyping', (e) => {
-        // console.log("User is typing:", e.typer_id);
-        clearTimeout(window.typingTimeout);
+    // window.Echo.private(`typing.${ReceiverId}`)
+    // .listen('UserTyping', (e) => {
+    //     // console.log("User is typing:", e.typer_id);
+    //     clearTimeout(window.typingTimeout);
 
-        const typingIndicator = document.getElementById("typing-indicator");
-        typingIndicator.style.display = "block";
+    //     const typingIndicator = document.getElementById("typing-indicator");
+    //     typingIndicator.style.display = "block";
 
-        // hide after  seconds
-        window.typingTimeout = setTimeout(() => {
-            typingIndicator.style.display = "none";
-        }, 1500);
-    });
+    //     // hide after  seconds
+    //     window.typingTimeout = setTimeout(() => {
+    //         typingIndicator.style.display = "none";
+    //     }, 1500);
+    // });
 
-if (textInput) {
-    textInput.addEventListener("input", function () {
+// if (textInput) {
+//     textInput.addEventListener("input", function () {
 
-        fetch(`/chat/typing`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
+//         fetch(`/chat/typing`, {
+//             method: "POST",
+//             headers: {
+//                 "Content-Type": "application/json",
+//                 "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+//             }
+//         })
+//         .then(response => response.json())
+//         .then(data => {
            
-        })
-        .catch(error => {
-            console.error("Error sending typing status:", error);
-        });
-    });
-}
+//         })
+//         .catch(error => {
+//             console.error("Error sending typing status:", error);
+//         });
+//     });
+// }
 
 
     if(message_form){
