@@ -10,6 +10,10 @@
 </head>
 <body class="bg-gray-50 min-h-screen text-gray-800">
 <div class="container mx-auto max-w-4xl">
+    <ul id="online-users" class="bg-white shadow rounded p-3 mb-4">
+        
+    </ul>
+
     <div class="bg-white rounded-lg shadow-lg p-6 m-4">
         {{-- USER NAME --}}
         <h2 class="text-2xl font-semibold mb-4">Chat with {{$receiver->name}}</h2>
@@ -36,7 +40,7 @@
                 @endif
                 
             @empty
-                <h1>No messages yet</h1>
+                <h1 id="no-msg" >No messages yet</h1>
             @endforelse
            
             
@@ -69,14 +73,10 @@
 </script>
 <script>
 
-// console.log("Chat script loaded." + ReceiverId + " " + currentUserId);
 document.addEventListener("DOMContentLoaded", function() {
     // console.log(window.Echo);
-
-
         let message_form = document.getElementById("message_form");
        const textInput = document.getElementById("text-input");
-
 
 window.Echo.private(`chat.${currentUserId}`)
     .subscribed(() => console.log('Subscribed to private chat channel', `chat.${currentUserId}`))
@@ -86,6 +86,10 @@ window.Echo.private(`chat.${currentUserId}`)
         
         const chatMessages = document.getElementById("chat-messages");
         const messageDiv = document.createElement("div");
+        const no_msg = document.getElementById("no-msg");
+        if(no_msg){
+            no_msg.remove();
+        }
         messageDiv.classList.add("flex", "mb-4");
         messageDiv.innerHTML = `
             <div class="ml-3 bg-gray-100 rounded-lg py-2 px-4">
@@ -108,7 +112,6 @@ textInput.addEventListener('input', () => {
 });
 
 
-
 let typingTimeout;
 
 function showTypingIndicator(name) {
@@ -121,45 +124,6 @@ function showTypingIndicator(name) {
         indicator.style.display = 'none';
     }, 2000);
 }
-
-    // Receiver ID is the current logged-in user
-
-
-
-    // window.Echo.private(`typing.${ReceiverId}`)
-    // .listen('UserTyping', (e) => {
-    //     // console.log("User is typing:", e.typer_id);
-    //     clearTimeout(window.typingTimeout);
-
-    //     const typingIndicator = document.getElementById("typing-indicator");
-    //     typingIndicator.style.display = "block";
-
-    //     // hide after  seconds
-    //     window.typingTimeout = setTimeout(() => {
-    //         typingIndicator.style.display = "none";
-    //     }, 1500);
-    // });
-
-// if (textInput) {
-//     textInput.addEventListener("input", function () {
-
-//         fetch(`/chat/typing`, {
-//             method: "POST",
-//             headers: {
-//                 "Content-Type": "application/json",
-//                 "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
-//             }
-//         })
-//         .then(response => response.json())
-//         .then(data => {
-           
-//         })
-//         .catch(error => {
-//             console.error("Error sending typing status:", error);
-//         });
-//     });
-// }
-
 
     if(message_form){
         message_form.addEventListener("submit", function(event){
@@ -181,27 +145,71 @@ function showTypingIndicator(name) {
                 })
             })
            
-
-                    const chatMessages = document.getElementById("chat-messages");
-                    const messageDiv = document.createElement("div");
-                    messageDiv.classList.add("flex", "mb-4", "justify-end");
-                    messageDiv.innerHTML = `
-                        <div class="mr-3 bg-blue-500 rounded-lg py-2 px-4">
-                            <p class="text-sm text-white">${message}</p>
-                        </div>
-                    `;
-                    chatMessages.appendChild(messageDiv);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                    if (textInput) textInput.value = "";
-
+            const chatMessages = document.getElementById("chat-messages");
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("flex", "mb-4", "justify-end");
+            messageDiv.innerHTML = `
+                <div class="mr-3 bg-blue-500 rounded-lg py-2 px-4">
+                    <p class="text-sm text-white">${message}</p>
+                </div>
+            `;
+             const no_msg = document.getElementById("no-msg");
+        if(no_msg){
+            no_msg.remove();
+        }
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        if (textInput) textInput.value = "";
 
                
         });
     }
+// PRESENCE CHANNEL TO SHOW ONLINE USERS
+window.Echo.join('presence.chat')
+    .here((users) => {
+        console.log("Currently online:", users);
+        updateOnlineUsers(users);
+    })
+    .joining((user) => {
+        console.log(user.name + " joined");
+        addOnlineUser(user);
+    })
+    .leaving((user) => {
+        console.log(user.name + " left");
+        removeOnlineUser(user);
+    })
+    .error((err) => {
+        console.error('Presence channel error:', err);
+    });
 
+function updateOnlineUsers(users) {
+    const list = document.getElementById('online-users');
+    list.innerHTML = '';
+    users.forEach(u => {
+        const li = document.createElement('li');
+        li.id = `user-${u.id}`;
+        li.className = "p-2 border-b text-green-600";
+        li.textContent = u.name;
+        list.appendChild(li);
+    });
+}
 
+function addOnlineUser(user) {
+    const list = document.getElementById('online-users');
+    const li = document.createElement('li');
+    li.id = `user-${user.id}`;
+    li.className = "p-2 border-b text-green-600";
+    li.textContent = user.name;
+    list.appendChild(li);
+}
+
+function removeOnlineUser(user) {
+    document.getElementById(`user-${user.id}`)?.remove();
+}
 
 });
+
+
 </script>
 
 </body>

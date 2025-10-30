@@ -8,6 +8,10 @@ use App\Http\Controllers\MessageController;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('/pass', function () {
+    echo bcrypt('aze');
+
+});
 
 Auth::routes();
 

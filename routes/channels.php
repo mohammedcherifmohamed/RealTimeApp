@@ -10,3 +10,10 @@ Broadcast::channel('chat.{receiverId}', function ($user, $receiverId) {
 Broadcast::channel('typing.{id}', function ($user, $id) {
     return true ;
 });
+Broadcast::channel('presence.chat', function ($user) {
+    return [
+        'id' => $user->id,
+        'name' => $user->name,
+    ];
+});
+
