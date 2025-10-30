@@ -203,6 +203,9 @@ function addOnlineUser(user) {
     list.appendChild(li);
 }
 
+
+// comment added
+
 function removeOnlineUser(user) {
     document.getElementById(`user-${user.id}`)?.remove();
 }
